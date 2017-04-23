@@ -1,11 +1,15 @@
 {
   "name": "placement-portal",
   "version": "1.0.0",
-  "description": "plcaement portal using MongoDB,, Express and NodeJS",
+  "description": "plcaement portal using MongoDB, Express and NodeJS",
   "main": "app/app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node app.js"
   },
   "author": "Himanshu Singh",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.15.2",
+    "ejs": "~2.5.5"
+  }
 }
