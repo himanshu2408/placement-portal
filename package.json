@@ -12,6 +12,7 @@
     "body-parser": "^1.17.1",
     "ejs": "~2.5.5",
     "express": "^4.15.2",
+    "mongojs": "^2.4.0",
     "mongoose": "^4.9.5",
     "nodemon": "^1.11.0",
     "reload": "^1.1.2"

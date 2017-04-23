@@ -1,2 +1,6 @@
 <h1><%= pageTitle %></h1>
 <h3><%= pageID %></h3>
+<p><% for(var i=0; i<JSON.stringify(companies).length; i++) { %>
+    <span><%= companies[i] %></span>
+    <% } %>
+</p>
