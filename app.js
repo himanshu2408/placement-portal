@@ -1,10 +1,13 @@
+//dependencies
 var express = require('express');
 var path = require('path');
 var mongoose = require('mongoose');
+var bodyParser = require('body-parser');
+var reload = require('reload');
 
-var index = require('./routes/index');
-var jobs = require('./routes/jobs');
-var recruit = require('./routes/recruit');
+
+//routes
+var api = require('./routes/api');
 
 
 var app = express();
@@ -14,13 +17,20 @@ app.set('port', process.env.PORT || 3000);
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
-app.use('/', index);
-app.use('/jobs', jobs);
-app.use('/recruit', recruit);
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
+app.get('/',function (req, res) {
+    res.redirect('/api');
+});
+app.use('/api', api);
 
+//creating server
 var server = app.listen(app.get('port'), function () {
    console.log('server is runnning on port '+app.get('port'));
 });
+
+reload(server, app);
 
 module.exports = app;
