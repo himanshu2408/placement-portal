@@ -5,7 +5,7 @@ var router = express.Router();
 router.get('/', function(req, res, next) {
 
     res.render('recruit', {
-        title: 'Recruitment Page',
+        pageTitle: 'Recruitment Page',
         pageID: 'recruit'
     });
 
