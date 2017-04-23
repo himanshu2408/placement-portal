@@ -5,9 +5,6 @@ var companySchema = mongoose.Schema({
     name: {
         type: String
     },
-    designation: {
-        type: String
-    },
     profile: {
         type: String
     },
