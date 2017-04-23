@@ -9,7 +9,8 @@
   "author": "Himanshu Singh",
   "license": "ISC",
   "dependencies": {
+    "ejs": "~2.5.5",
     "express": "^4.15.2",
-    "ejs": "~2.5.5"
+    "mongoose": "^4.9.5"
   }
 }

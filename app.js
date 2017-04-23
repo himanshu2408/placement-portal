@@ -1,6 +1,6 @@
 var express = require('express');
 var path = require('path');
-
+var mongoose = require('mongoose');
 
 var index = require('./routes/index');
 var jobs = require('./routes/jobs');
