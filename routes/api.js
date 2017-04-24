@@ -201,12 +201,6 @@ router.post('/company/:id/register', function(req, res, next) {
 
             }
         });
-        db.companies.save(company, function (err, company) {
-            if(err){
-                res.send(err);
-            }
-            res.json(company);
-        });
     }
 });
 
