@@ -4,7 +4,7 @@
   "description": "plcaement portal using MongoDB, Express and NodeJS",
   "main": "app/app.js",
   "scripts": {
-    "start": "nodemon -e css,ejs,js,json app.js"
+    "start": "nodemon -e css,ejs,js,json server.js"
   },
   "author": "Himanshu Singh",
   "license": "ISC",

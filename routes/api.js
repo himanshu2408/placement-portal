@@ -1,9 +1,22 @@
 //dependencies
 var express = require('express');
 var router = express.Router();
-var mongojs = require('mongojs')
-var db = mongojs('mongodb://nagarro:nagarro@ds115671.mlab.com:15671/placement_portal_nagarro', ['students', 'companies']);
+var Students = require('../models/student');
+var Companies = require('../models/company');
+var mongoose = require('mongoose');
 
+var options = { server: { socketOptions: { keepAlive: 300000, connectTimeoutMS: 30000 } },
+    replset: { socketOptions: { keepAlive: 300000, connectTimeoutMS : 30000 } } };
+
+var uri = 'mongodb://nagarro:nagarro@ds115671.mlab.com:15671/placement_portal_nagarro';
+mongoose.connect(uri, options);
+var db = mongoose.connection;
+
+db.on('error', console.error.bind(console, 'connection error:'));
+
+db.once('open', function() {
+    console.log("Connected to the database.");
+});
 
 router.get('/', function(req, res, next) {
 
@@ -16,193 +29,157 @@ router.get('/', function(req, res, next) {
 
 // student apis
 router.get('/student', function(req, res, next) {
-    db.students.find(function (err, students) {
-        if(err){
-            res.send(err);
-        }
-        res.json(students);
-    });
+    Students.find()
+        .then(function (data) {
+            res.json(data);
+        });
 });
 
 // GET particular student
 router.get('/student/:id', function(req, res, next) {
-    db.students.findOne({_id:mongojs.ObjectId(req.params.id)} ,function (err, student) {
+    Students.findById(req.params.id, function (err, student) {
         if(err){
             res.send(err);
         }
-        res.json(student);
-    });
+        else{
+            res.json(student);
+        }
+    })
 });
 
 // update student profile
 router.put('/student/:id', function(req, res, next) {
-    var student = req.body;
-    var updStudent = {};
-    if(student.name){
-        updStudent.name = student.name;
-    }
-    if(student.department){
-        updStudent.department = student.department;
-    }
-    if(student.rollno){
-        updStudent.rollno = student.rollno;
-    }
-    if(student.cgpa){
-        updStudent.cgpa = student.cgpa;
-    }
-    if(!updStudent){
-        res.status(400);
-        res.json({
-            "error": "BAD data"
-        });
-    }
-    else{
-        db.students.update({_id:mongojs.ObjectId(req.params.id)}, updStudent, {} ,function (err, student) {
-            if(err){
-                res.send(err);
-            }
+    var item = req.body;
+    Students.findById(req.params.id, function (err, student) {
+        if(err){
+            res.send(err);
+        }
+        else{
+            student.name = item.name;
+            student.department = item.department;
+            student.rollno = item.rollno;
+            student.cgpa = item.cgpa;
+            student.save();
             res.json(student);
-        });
-    }
-
+        }
+    })
 });
 
 // Add new student
 router.post('/student', function(req, res, next) {
-    var student = req.body;
-    if(!student.name || !student.department || !student.rollno || !student.cgpa){
+    var item = req.body;
+    if(!item.name || !item.department || !item.rollno || !item.cgpa){
         res.status(400);
         res.json({
             "error": "BAD data"
         });
     }
     else{
-        db.students.save(student, function (err, student) {
-            if(err){
-                res.send(err);
-            }
-            res.json(student);
-        });
+        var student = new Students(item);
+        student.save();
+        res.send(student);
     }
 });
 
 // Delete a particular student
 router.delete('/student/:id', function(req, res, next) {
-    db.students.remove({_id:mongojs.ObjectId(req.params.id)} ,function (err, student) {
-        if(err){
-            res.send(err);
-        }
-        res.json(student);
-    });
+    Students.findByIdAndRemove(req.params.id).exec();
+    res.send("Student record has been deleted from the database.");
 });
 
 
 
 // company apis
 router.get('/company', function(req, res, next) {
-    db.companies.find(function (err, companies) {
-        if(err){
-            res.send(err);
-        }
-        res.json(companies);
-    });
+    Companies.find()
+        .then(function (data) {
+            res.json(data);
+        });
 });
 
 // GET particular company
 router.get('/company/:id', function(req, res, next) {
-    db.companies.findOne({_id:mongojs.ObjectId(req.params.id)} ,function (err, company) {
+    Companies.findById(req.params.id, function (err, company) {
         if(err){
             res.send(err);
         }
-        res.json(company);
-    });
+        else{
+            res.json(company);
+        }
+    })
 });
 
 // update company profile
 router.put('/company/:id', function(req, res, next) {
-    var company = req.body;
-    var updCompany = {};
-    if(company.name){
-        updCompany.name = company.name;
-    }
-    if(company.profile){
-        updCompany.profile = company.profile;
-    }
-    if(company.ctc){
-        updCompany.ctc = company.ctc;
-    }
-    if(company.address){
-        updCompany.address = company.address;
-    }
-    if(!updCompany){
-        res.status(400);
-        res.json({
-            "error": "BAD data"
-        });
-    }
-    else{
-        db.companies.update({_id:mongojs.ObjectId(req.params.id)}, updCompany, {} ,function (err, company) {
-            if(err){
-                res.send(err);
-            }
+    var item = req.body;
+    Companies.findById(req.params.id, function (err, company) {
+        if(err){
+            res.send(err);
+        }
+        else{
+            company.name = item.name;
+            company.profile = item.profile;
+            company.ctc = item.ctc;
+            company.address = item.address;
+            company.save();
             res.json(company);
-        });
-    }
-
+        }
+    })
 });
 
 // Add new company
 router.post('/company', function(req, res, next) {
-    var company = req.body;
-    if(!company.name || !company.profile || !company.ctc || !company.address){
+    var item = req.body;
+    if(!item.name || !item.profile || !item.ctc || !item.address){
         res.status(400);
         res.json({
             "error": "BAD data"
         });
     }
     else{
-        db.companies.save(company, function (err, company) {
-            if(err){
-                res.send(err);
-            }
-            res.json(company);
-        });
+        var company = new Companies(item);
+        company.save();
+        res.send(company);
     }
 });
 
 // Delete a particular company
 router.delete('/company/:id', function(req, res, next) {
-    db.companies.remove({_id:mongojs.ObjectId(req.params.id)} ,function (err, company) {
-        if(err){
-            res.send(err);
-        }
-        res.json(company);
-    });
+    Companies.findByIdAndRemove(req.params.id).exec();
+    res.send("Company record has been deleted from the database.");
 });
 
 
 
 
 // Register student for a company
-router.post('/company/:id/register', function(req, res, next) {
+router.post('/company/:id', function(req, res, next) {
     var student = req.body;
-    if(!student.name || !student.department || !student.rollno || !student.cgpa){
-        res.status(400);
-        res.json({
-            "error": "BAD data"
-        });
-    }
-    else{
-        db.companies.findOne({_id:mongojs.ObjectId(req.params.id)} ,function (err, company) {
-            if(err){
-                res.send(err);
-            }
-            else{
-
-            }
-        });
-    }
+    Companies.findById(req.params.id, function (err, company) {
+        if(err){
+            res.send(err);
+        }
+        else{
+            company.registeredStudents.push(student);
+            company.save();
+            res.send(company);
+        }
+    })
 });
 
+
+// UnRegister student from company
+router.delete('/company/:id/:s_id', function(req, res, next) {
+    Companies.findById(req.params.id, function (err, company) {
+        if(err){
+            res.send(err);
+        }
+        else{
+            company.registeredStudents.id(req.params.s_id).remove();
+            company.save();
+            res.send('Student has been unregistered successfully.');
+        }
+    })
+});
 
 module.exports = router;

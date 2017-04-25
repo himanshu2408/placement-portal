@@ -1,5 +1,28 @@
 var mongoose = require('mongoose');
 
+
+var registeredStudentSchema = mongoose.Schema({
+    name:{
+        type: String,
+        required: true
+    },
+    department:{
+        type: String,
+        required: true
+    },
+    rollno:{
+        type: Number,
+        unique: true,
+        required: true
+    },
+    cgpa:{
+        type: Number,
+        required: true
+    }
+},{
+    timestamps:true
+});
+
 var companySchema = mongoose.Schema({
 
     name: {
@@ -13,7 +36,8 @@ var companySchema = mongoose.Schema({
     },
     address: {
         type: String
-    }
+    },
+    registeredStudents: [registeredStudentSchema]
 },{
     timestamps: true
 });
