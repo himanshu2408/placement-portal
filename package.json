@@ -15,6 +15,15 @@
     "mongojs": "^2.4.0",
     "mongoose": "^4.9.5",
     "nodemon": "^1.11.0",
-    "reload": "^1.1.2"
+    "reload": "^1.1.2",
+    "bcryptjs": "*",
+    "connect-flash": "*",
+    "cookie-parser": "^1.4.1",
+    "express-messages": "*",
+    "express-session": "*",
+    "express-validator": "*",
+    "passport": "*",
+    "passport-http": "*",
+    "passport-local": "*"
   }
 }
