@@ -12,7 +12,6 @@ var registeredStudentSchema = mongoose.Schema({
     },
     rollno:{
         type: Number,
-        unique: true,
         required: true
     },
     cgpa:{
@@ -26,7 +25,8 @@ var registeredStudentSchema = mongoose.Schema({
 var companySchema = mongoose.Schema({
 
     name: {
-        type: String
+        type: String,
+        unique: true
     },
     profile: {
         type: String
@@ -43,3 +43,8 @@ var companySchema = mongoose.Schema({
 });
 
 var Company = module.exports = mongoose.model('Company', companySchema);
+
+module.exports.getCompanyByName = function (name, callback) {
+    var query = { name: name };
+    Company.findOne(query, callback);
+}

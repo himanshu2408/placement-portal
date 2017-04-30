@@ -21,17 +21,25 @@ db.once('open', function() {
     console.log("Connected to the database.");
 });
 
-router.get('/', function(req, res, next) {
-    res.render('api', {
-        pageTitle: 'API Page',
-        pageID: 'api',
-        user: req.user
-    });
+
+router.get('/', ensureAuthenticated, function(req, res, next) {
+    if(!req.user){
+        res.render('login');
+    }
+    else {
+        res.render('api', {
+            pageTitle: 'API Page',
+            pageID: 'api',
+            user: req.user
+        });
+    }
 
 });
 
-// student apis
-router.get('/student', function(req, res, next) {
+// STUDENT API'S
+
+// List all students
+router.get('/students', ensureAuthenticated, function(req, res, next) {
     Students.find()
         .then(function (data) {
             res.json(data);
@@ -39,7 +47,7 @@ router.get('/student', function(req, res, next) {
 });
 
 // GET particular student
-router.get('/student/:id', function(req, res, next) {
+router.get('/students/:id', ensureAuthenticated, function(req, res, next) {
     Students.findById(req.params.id, function (err, student) {
         if(err){
             res.send(err);
@@ -51,57 +59,104 @@ router.get('/student/:id', function(req, res, next) {
 });
 
 // update student profile
-router.put('/student/:id', function(req, res, next) {
+router.put('/students/:id', ensureAuthenticated, function(req, res, next) {
     var item = req.body;
-    Students.findById(req.params.id, function (err, student) {
-        if(err){
-            res.send(err);
-        }
-        else{
-            student.name = item.name;
-            student.department = item.department;
-            student.rollno = item.rollno;
-            student.cgpa = item.cgpa;
-            student.save();
-            res.json(student);
-        }
-    })
+    var name = item.name;
+    var department = item.department;
+    var rollno = item.rollno;
+    var cgpa = item.cgpa;
+    req.checkBody('name', 'Student name is required').notEmpty();
+    req.checkBody('department', 'Department is required').notEmpty();
+    req.checkBody('rollno', 'RollNo is required').notEmpty();
+    req.checkBody('rollno', 'RollNo should be an integer').isInt();
+    req.checkBody('cgpa', 'CGPA is required').notEmpty();
+
+    var errors = req.validationErrors();
+
+    if(errors){
+        res.send(errors);
+    }
+    else {
+        Students.findById(req.params.id, function (err, student) {
+            if (err) {
+                res.send(err);
+            }
+            else {
+                Students.getStudentByRollno(student.rollno, function (err, ifStudent) {
+                    if(err){
+                        res.send(err);
+                    }
+                    else if(ifStudent){
+                        res.send('Student with this rollno already registered.');
+                    }
+                    else{
+                        student.name = name;
+                        student.department = department;
+                        student.rollno = rollno;
+                        student.cgpa = cgpa;
+                        student.save();
+                        res.json(student);
+                    }
+                });
+            }
+        })
+    }
 });
 
 // Add new student
-router.post('/student', function(req, res, next) {
+router.post('/students', ensureAuthenticated, function(req, res, next) {
     var item = req.body;
-    if(!item.name || !item.department || !item.rollno || !item.cgpa){
-        res.status(400);
-        res.json({
-            "error": "BAD data"
-        });
+    var name = item.name;
+    var department = item.department;
+    var rollno = item.rollno;
+    var cgpa = item.cgpa;
+    req.checkBody('name', 'Student name is required').notEmpty();
+    req.checkBody('department', 'Department is required').notEmpty();
+    req.checkBody('rollno', 'RollNo is required').notEmpty();
+    req.checkBody('rollno', 'RollNo should be an integer').isInt();
+    req.checkBody('cgpa', 'CGPA is required').notEmpty();
+
+    var errors = req.validationErrors();
+    if(errors){
+        res.send(errors);
     }
     else{
-        var student = new Students(item);
-        student.save();
-        res.send(student);
+        Students.getStudentByRollno(rollno, function (err, ifStudent) {
+            if(err){
+                res.send(err);
+            }
+            else if(ifStudent){
+                res.send('Student with this rollno already registered.');
+            }
+            else{
+                var student = new Students(item);
+                student.save();
+                res.send(student);
+            }
+        });
     }
 });
 
 // Delete a particular student
-router.delete('/student/:id', function(req, res, next) {
+router.delete('/students/:id', ensureAuthenticated, function(req, res, next) {
     Students.findByIdAndRemove(req.params.id).exec();
     res.send("Student record has been deleted from the database.");
 });
 
 
 
-// company apis
-router.get('/company', function(req, res, next) {
+// COMPANY API'S
+
+//Get Companies List
+router.get('/companies', ensureAuthenticated, function(req, res, next) {
     Companies.find()
         .then(function (data) {
             res.json(data);
         });
 });
 
-// GET particular company
-router.get('/company/:id', function(req, res, next) {
+// get particular company
+router.get('/companies/:id', ensureAuthenticated, function(req, res, next) {
     Companies.findById(req.params.id, function (err, company) {
         if(err){
             res.send(err);
@@ -113,41 +168,88 @@ router.get('/company/:id', function(req, res, next) {
 });
 
 // update company profile
-router.put('/company/:id', function(req, res, next) {
+router.put('/companies/:id', ensureAuthenticated, function(req, res, next) {
     var item = req.body;
-    Companies.findById(req.params.id, function (err, company) {
-        if(err){
-            res.send(err);
-        }
-        else{
-            company.name = item.name;
-            company.profile = item.profile;
-            company.ctc = item.ctc;
-            company.address = item.address;
-            company.save();
-            res.json(company);
-        }
-    })
+    var name = item.name;
+    var profile = item.profile;
+    var ctc = item.ctc;
+    var address = item.address;
+    req.checkBody('name', 'Company Name is required').notEmpty();
+    req.checkBody('profile', 'Profile is required').notEmpty();
+    req.checkBody('ctc', 'CTC is required').notEmpty();
+    req.checkBody('address', 'Company address is required').notEmpty();
+
+    var errors = req.validationErrors();
+    if(errors){
+        res.send(errors);
+    }
+    else {
+        Companies.findById(req.params.id, function (err, company) {
+            if (err) {
+                res.send(err);
+            }
+            else {
+                Companies.getCompanyByName(company.name, function (err, ifCompany) {
+                    if(err){
+                        res.send(err);
+                    }
+                    else if(ifCompany){
+                        res.send('Company with this name is already registered.');
+                    }
+                    else{
+                        company.name = item.name;
+                        company.profile = item.profile;
+                        company.ctc = item.ctc;
+                        company.address = item.address;
+                        company.save();
+                        res.json(company);
+                    }
+                });
+            }
+        })
+    }
 });
 
 // Add new company
-router.post('/company', function(req, res, next) {
+router.post('/companies', ensureAuthenticated, function(req, res, next) {
     var item = req.body;
-    if(!item.name || !item.profile || !item.ctc || !item.address){
-        res.status(400);
-        res.json({
-            "error": "BAD data"
-        });
+    var name = item.name;
+    var profile = item.profile;
+    var ctc = item.ctc;
+    var address = item.address;
+    req.checkBody('name', 'Company Name is required').notEmpty();
+    req.checkBody('profile', 'Profile is required').notEmpty();
+    req.checkBody('ctc', 'CTC is required').notEmpty();
+    req.checkBody('address', 'Company address is required').notEmpty();
+
+    var errors = req.validationErrors();
+    if(errors){
+        res.send(errors);
     }
     else{
-        var company = new Companies(item);
-        company.save();
-        res.send(company);
+        Companies.getCompanyByName(name, function (err, ifname) {
+           if(err){
+               res.send(err);
+           }
+           else if(ifname){
+               res.send('Company with this name is already registered.');
+           }
+           else{
+               var company = new Companies({
+                   name: name,
+                   profile: profile,
+                   ctc: ctc,
+                   address: address
+               });
+               company.save();
+               res.send(company);
+           }
+        });
     }
 });
 
 // Delete a particular company
-router.delete('/company/:id', function(req, res, next) {
+router.delete('/companies/:id', ensureAuthenticated, function(req, res, next) {
     Companies.findByIdAndRemove(req.params.id).exec();
     res.send("Company record has been deleted from the database.");
 });
@@ -156,23 +258,53 @@ router.delete('/company/:id', function(req, res, next) {
 
 
 // Register student for a company
-router.post('/company/:id', function(req, res, next) {
+router.post('/companies/:id', ensureAuthenticated, function(req, res, next) {
     var student = req.body;
-    Companies.findById(req.params.id, function (err, company) {
-        if(err){
-            res.send(err);
-        }
-        else{
-            company.registeredStudents.push(student);
-            company.save();
-            res.send(company);
-        }
-    })
+    var name = student.name;
+    var department = student.department;
+    var rollno = student.rollno;
+    var cgpa = student.cgpa;
+    req.checkBody('name', 'Student Name is required').notEmpty();
+    req.checkBody('department', 'Department is required').notEmpty();
+    req.checkBody('rollno', 'RollNo is required').notEmpty();
+    req.checkBody('rollno', 'RollNo should be an integer').isInt();
+    req.checkBody('cgpa', 'CGPA is required').notEmpty();
+
+    var errors = req.validationErrors();
+    if(errors){
+        res.send(errors);
+    }
+    else {
+        Companies.findById(req.params.id, function (err, company) {
+            if (err) {
+                res.send(err);
+            }
+            else {
+                var data = {
+                    name: company.name,
+                    rollno: rollno
+                }
+                Companies.ifStudentRegistered(data, function (err, ifRegistered) {
+                    if(err){
+                        res.send(err);
+                    }
+                    else if(ifRegistered){
+                        res.send('Student with this rollno has already been registered.');
+                    }
+                    else{
+                        company.registeredStudents.push(student);
+                        company.save();
+                        res.send(company);
+                    }
+                });
+            }
+        })
+    }
 });
 
 
 // UnRegister student from company
-router.delete('/company/:id/:s_id', function(req, res, next) {
+router.delete('/companies/:id/:s_id', ensureAuthenticated, function(req, res, next) {
     Companies.findById(req.params.id, function (err, company) {
         if(err){
             res.send(err);
@@ -187,7 +319,7 @@ router.delete('/company/:id/:s_id', function(req, res, next) {
 
 
 
-// User Registration
+// User Registration for this placement portal
 router.post('/register', function (req, res, next) {
    var username = req.body.username;
    var password = req.body.password;
@@ -196,10 +328,10 @@ router.post('/register', function (req, res, next) {
    //Validation
     req.checkBody('username', 'Username is required').notEmpty();
     req.checkBody('password', 'Password is required').notEmpty();
+    req.checkBody('password', '6 to 20 characters required').len(6, 20);
     req.checkBody('password2', 'Passwords do not match').equals(req.body.password);
 
     var errors = req.validationErrors();
-
     if(errors){
         res.send(errors);
     }
@@ -208,19 +340,29 @@ router.post('/register', function (req, res, next) {
             username: username,
             password: password
         });
-        User.createUser(newUser, function (err, user) {
+        User.getUserByUsername(username, function (err, ifuser) {
             if(err){
                 res.send(err);
-                throw err;
             }
-            console.log(user);
-            res.send('You are successfully registered with Username: '+username + ' and Password: '+password);
+            else if(ifuser){
+                res.send('This user is already registered.');
+            }
+            else{
+                User.createUser(newUser, function (err, user) {
+                    if(err){
+                        res.send(err);
+                        throw err;
+                    }
+                    console.log(user);
+                    res.send('You are successfully registered with Username: '+username + ' and Password: '+password);
+                });
+            }
         });
     }
 });
 
 
-
+// Dependencies for User registration
 passport.use(new LocalStrategy(
     function(username, password, done) {
         User.getUserByUsername(username, function(err, user){
@@ -252,7 +394,7 @@ passport.deserializeUser(function(id, done) {
 
 
 router.post('/login',
-    passport.authenticate('local', {successRedirect:'/api', failureRedirect:'/api/login',failureFlash: true}),
+    passport.authenticate('local', {successRedirect:'/api'}),
     function(req, res) {
         res.redirect('/api');
     });
@@ -264,11 +406,29 @@ router.get('/logout', function(req, res){
 
 router.get('/login', function (req, res, next) {
     if(!req.user){
-        res.send('Please send a POST request with correct username and password to login.');
+        res.render('login');
     }
     else{
         res.redirect('/api');
     }
 });
+
+router.get('/register', function (req, res, next) {
+    if(!req.user){
+        res.render('register');
+    }
+    else{
+        res.redirect('/api');
+    }
+});
+
+function ensureAuthenticated(req, res, next){
+    if(req.isAuthenticated()){
+        return next();
+    } else {
+        //req.flash('error_msg','You are not logged in');
+        res.redirect('/api/login');
+    }
+}
 
 module.exports = router;

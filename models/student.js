@@ -13,10 +13,15 @@ var studentSchema = mongoose.Schema({
         unique: true
     },
     cgpa:{
-        type: Number
+        type: String
     }
 },{
     timestamps: true
 });
 
 var Student = module.exports = mongoose.model('Student', studentSchema);
+
+module.exports.getStudentByRollno = function (rollno, callback) {
+    var query = {rollno: rollno};
+    Student.findOne(query, callback);
+}
