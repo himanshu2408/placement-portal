@@ -16,9 +16,6 @@ var api = require('./routes/api');
 
 var app = express();
 
-//prevent unexpected crashes
-app.on('uncaughtException', console.error);
-
 //cors
 app.use(cors());
 

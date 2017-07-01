@@ -39,7 +39,7 @@ router.get('/', ensureAuthenticated, function(req, res, next) {
 // STUDENT API'S
 
 // List all students
-router.get('/students', ensureAuthenticated, function(req, res, next) {
+router.get('/students', function(req, res, next) {
     Students.find()
         .then(function (data) {
             res.json(data);
@@ -47,7 +47,7 @@ router.get('/students', ensureAuthenticated, function(req, res, next) {
 });
 
 // GET particular student
-router.get('/students/:id', ensureAuthenticated, function(req, res, next) {
+router.get('/students/:id', function(req, res, next) {
     Students.findById(req.params.id, function (err, student) {
         if(err){
             res.send(err);
@@ -59,7 +59,7 @@ router.get('/students/:id', ensureAuthenticated, function(req, res, next) {
 });
 
 // update student profile
-router.put('/students/:id', ensureAuthenticated, function(req, res, next) {
+router.put('/students/:id', function(req, res, next) {
     var item = req.body;
     var name = item.name;
     var department = item.department;
@@ -82,12 +82,12 @@ router.put('/students/:id', ensureAuthenticated, function(req, res, next) {
                 res.send(err);
             }
             else {
-                Students.getStudentByRollno(student.rollno, function (err, ifStudent) {
+                Students.getStudentByRollno(rollno, function (err, ifStudent) {
                     if(err){
                         res.send(err);
                     }
                     else if(ifStudent){
-                        res.send('Student with this rollno already registered.');
+                        res.send('rollno already registered.');
                     }
                     else{
                         student.name = name;
@@ -104,7 +104,7 @@ router.put('/students/:id', ensureAuthenticated, function(req, res, next) {
 });
 
 // Add new student
-router.post('/students', ensureAuthenticated, function(req, res, next) {
+router.post('/students', function(req, res, next) {
     var item = req.body;
     var name = item.name;
     var department = item.department;
@@ -126,7 +126,7 @@ router.post('/students', ensureAuthenticated, function(req, res, next) {
                 res.send(err);
             }
             else if(ifStudent){
-                res.send('Student with this rollno already registered.');
+                res.send('rollno already registered.');
             }
             else{
                 var student = new Students(item);
@@ -138,7 +138,7 @@ router.post('/students', ensureAuthenticated, function(req, res, next) {
 });
 
 // Delete a particular student
-router.delete('/students/:id', ensureAuthenticated, function(req, res, next) {
+router.delete('/students/:id', function(req, res, next) {
     Students.findByIdAndRemove(req.params.id).exec();
     res.send("Student record has been deleted from the database.");
 });
@@ -148,7 +148,7 @@ router.delete('/students/:id', ensureAuthenticated, function(req, res, next) {
 // COMPANY API'S
 
 //Get Companies List
-router.get('/companies', ensureAuthenticated, function(req, res, next) {
+router.get('/companies', function(req, res, next) {
     Companies.find()
         .then(function (data) {
             res.json(data);
@@ -156,7 +156,7 @@ router.get('/companies', ensureAuthenticated, function(req, res, next) {
 });
 
 // get particular company
-router.get('/companies/:id', ensureAuthenticated, function(req, res, next) {
+router.get('/companies/:id', function(req, res, next) {
     Companies.findById(req.params.id, function (err, company) {
         if(err){
             res.send(err);
@@ -168,7 +168,7 @@ router.get('/companies/:id', ensureAuthenticated, function(req, res, next) {
 });
 
 // update company profile
-router.put('/companies/:id', ensureAuthenticated, function(req, res, next) {
+router.put('/companies/:id', function(req, res, next) {
     var item = req.body;
     var name = item.name;
     var profile = item.profile;
@@ -189,7 +189,7 @@ router.put('/companies/:id', ensureAuthenticated, function(req, res, next) {
                 res.send(err);
             }
             else {
-                Companies.getCompanyByName(company.name, function (err, ifCompany) {
+                Companies.getCompanyByName(name, function (err, ifCompany) {
                     if(err){
                         res.send(err);
                     }
@@ -211,7 +211,7 @@ router.put('/companies/:id', ensureAuthenticated, function(req, res, next) {
 });
 
 // Add new company
-router.post('/companies', ensureAuthenticated, function(req, res, next) {
+router.post('/companies', function(req, res, next) {
     var item = req.body;
     var name = item.name;
     var profile = item.profile;
@@ -249,7 +249,7 @@ router.post('/companies', ensureAuthenticated, function(req, res, next) {
 });
 
 // Delete a particular company
-router.delete('/companies/:id', ensureAuthenticated, function(req, res, next) {
+router.delete('/companies/:id', function(req, res, next) {
     Companies.findByIdAndRemove(req.params.id).exec();
     res.send("Company record has been deleted from the database.");
 });
@@ -258,7 +258,7 @@ router.delete('/companies/:id', ensureAuthenticated, function(req, res, next) {
 
 
 // Register student for a company
-router.post('/companies/:id', ensureAuthenticated, function(req, res, next) {
+router.post('/companies/:id', function(req, res, next) {
     var student = req.body;
     var name = student.name;
     var department = student.department;
@@ -284,6 +284,10 @@ router.post('/companies/:id', ensureAuthenticated, function(req, res, next) {
                     name: company.name,
                     rollno: rollno
                 }
+                company.registeredStudents.push(student);
+                        company.save();
+                        res.send(company);
+/*
                 Companies.ifStudentRegistered(data, function (err, ifRegistered) {
                     if(err){
                         res.send(err);
@@ -297,6 +301,7 @@ router.post('/companies/:id', ensureAuthenticated, function(req, res, next) {
                         res.send(company);
                     }
                 });
+                */
             }
         })
     }
@@ -304,7 +309,7 @@ router.post('/companies/:id', ensureAuthenticated, function(req, res, next) {
 
 
 // UnRegister student from company
-router.delete('/companies/:id/:s_id', ensureAuthenticated, function(req, res, next) {
+router.delete('/companies/:id/:s_id', function(req, res, next) {
     Companies.findById(req.params.id, function (err, company) {
         if(err){
             res.send(err);
